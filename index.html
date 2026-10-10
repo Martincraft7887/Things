@@ -219,8 +219,7 @@
     <footer>
         <p>Built with HTML, CSS & JS. All videos are fetched directly from Twitter CDN servers.</p>
     </footer>
-
-    <script>
+<script>
         async function handleDownload(event) {
             event.preventDefault();
             const url = document.getElementById('tweetUrl').value.trim();
@@ -239,8 +238,10 @@
             submitBtn.disabled = true;
 
             try {
-                // Petición a la API pública de extracción
-                const response = await fetch('https://api.cobalt.tools/api/json', {
+                // Usamos un proxy CORS público para evitar el bloqueo del navegador en GitHub Pages
+                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.cobalt.tools/api/json');
+                
+                const response = await fetch(proxyUrl, {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -254,7 +255,6 @@
                 if (data.status === 'redirect' || data.status === 'stream' || data.url) {
                     statusMsg.textContent = 'Select quality to download:';
                     
-                    // Si trae múltiples resoluciones (picker) o un enlace único directo
                     const formats = data.picker ? data.picker : [{ url: data.url, label: 'HD Video' }];
 
                     formats.forEach((item, index) => {
