@@ -215,8 +215,8 @@
         <p>Built with HTML, CSS & JS. All videos are fetched directly from Twitter CDN servers.</p>
     </footer>
 
-    <script>
-        async function handleDownload(event) {
+<script>
+        function handleDownload(event) {
             event.preventDefault();
             const url = document.getElementById('tweetUrl').value.trim();
             const resultSection = document.getElementById('resultSection');
@@ -225,66 +225,44 @@
             const errorMsg = document.getElementById('errorMsg');
             const submitBtn = document.getElementById('submitBtn');
 
+            if (!url.includes('twitter.com') && !url.includes('x.com')) {
+                errorMsg.textContent = 'Por favor ingresa un enlace válido de X (Twitter).';
+                errorMsg.style.display = 'block';
+                resultSection.style.display = 'block';
+                return;
+            }
+
             resultSection.style.display = 'block';
             linksContainer.innerHTML = '';
             errorMsg.style.display = 'none';
             statusMsg.style.display = 'block';
-            statusMsg.textContent = 'Fetching video info from tweet...';
-            submitBtn.disabled = true;
+            statusMsg.textContent = 'Redirigiendo al motor de extracción...';
 
-            try {
-                // Usando un endpoint público alternativo de descarga multimedia
-                const apiURL = `https://api.tikmate.app/api/lookup?url=${encodeURIComponent(url)}`;
+            // Como los navegadores bloquean la extracción directa por seguridad (CORS) 
+            // y las APIs públicas requieren un backend propio, la opción más estable 
+            // en páginas estáticas es procesar la solicitud en un servicio dedicado:
+            setTimeout(() => {
+                // Puedes usar un servicio espejo o abrir una pasarela limpia de descarga
+                const secureRedirectUrl = `https://cobalt.tools/?u=${encodeURIComponent(url)}`;
                 
-                const response = await fetch(url.includes('tiktok') ? apiURL : 'https://api.cobalt.tools/api/json', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'User-Agent': 'Mozilla/5.0'
-                    },
-                    body: JSON.stringify({ url: url })
-                });
+                statusMsg.textContent = '¡Listo! Haz clic abajo para abrir el archivo procesado:';
+                
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'download-option';
+                
+                const labelSpan = document.createElement('span');
+                labelSpan.textContent = 'Descarga Segura en Cobalt';
 
-                if (!response.ok) {
-                    throw new Error('El servicio de descarga no respondió correctamente.');
-                }
+                const downloadLink = document.createElement('a');
+                downloadLink.href = secureRedirectUrl;
+                downloadLink.textContent = 'Ir a Descargar';
+                downloadLink.className = 'btn-download-link';
+                downloadLink.target = '_blank';
 
-                const data = await response.json();
-
-                if (data.status === 'redirect' || data.status === 'stream' || data.url) {
-                    statusMsg.textContent = 'Select quality to download:';
-                    const formats = data.picker ? data.picker : [{ url: data.url, label: 'HD Video' }];
-
-                    formats.forEach((item, index) => {
-                        const optionDiv = document.createElement('div');
-                        optionDiv.className = 'download-option';
-                        
-                        const labelSpan = document.createElement('span');
-                        labelSpan.textContent = item.label || `Video Option ${index + 1}`;
-
-                        const downloadLink = document.createElement('a');
-                        downloadLink.href = item.url;
-                        downloadLink.textContent = 'Download MP4';
-                        downloadLink.className = 'btn-download-link';
-                        downloadLink.target = '_blank';
-                        downloadLink.download = 'twitter-video.mp4';
-
-                        optionDiv.appendChild(labelSpan);
-                        optionDiv.appendChild(downloadLink);
-                        linksContainer.appendChild(optionDiv);
-                    });
-                } else {
-                    throw new Error(data.text || 'No se pudo extraer el video de este tuit.');
-                }
-
-            } catch (err) {
-                statusMsg.style.display = 'none';
-                errorMsg.textContent = 'Error: No se pudo conectar con la API de extracción o el enlace no es válido.';
-                errorMsg.style.display = 'block';
-            } finally {
-                submitBtn.disabled = false;
-            }
+                optionDiv.appendChild(labelSpan);
+                optionDiv.appendChild(downloadLink);
+                linksContainer.appendChild(optionDiv);
+            }, 1000);
         }
     </script>
 </body>
