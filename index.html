@@ -20,7 +20,6 @@
             min-height: 100vh;
         }
 
-        /* Navbar estilo simple */
         header {
             background-color: #ffffff;
             border-bottom: 1px solid #cfd9de;
@@ -44,7 +43,6 @@
             color: #1d9bf0;
         }
 
-        /* Contenido Principal */
         .main-container {
             flex: 1;
             display: flex;
@@ -68,7 +66,6 @@
             margin-bottom: 30px;
         }
 
-        /* Caja de búsqueda / Descarga */
         .downloader-box {
             background: #ffffff;
             border: 1px solid #cfd9de;
@@ -120,7 +117,6 @@
             background-color: #1a8cd8;
         }
 
-        /* Área de resultados */
         #resultSection {
             display: none;
             margin-top: 20px;
@@ -174,7 +170,6 @@
             margin-top: 10px;
         }
 
-        /* Footer */
         footer {
             background-color: #ffffff;
             border-top: 1px solid #cfd9de;
@@ -219,7 +214,8 @@
     <footer>
         <p>Built with HTML, CSS & JS. All videos are fetched directly from Twitter CDN servers.</p>
     </footer>
-<script>
+
+    <script>
         async function handleDownload(event) {
             event.preventDefault();
             const url = document.getElementById('tweetUrl').value.trim();
@@ -229,7 +225,6 @@
             const errorMsg = document.getElementById('errorMsg');
             const submitBtn = document.getElementById('submitBtn');
 
-            // Reset UI
             resultSection.style.display = 'block';
             linksContainer.innerHTML = '';
             errorMsg.style.display = 'none';
@@ -238,23 +233,27 @@
             submitBtn.disabled = true;
 
             try {
-                // Usamos un proxy CORS público para evitar el bloqueo del navegador en GitHub Pages
-                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.cobalt.tools/api/json');
+                // Usando un endpoint público alternativo de descarga multimedia
+                const apiURL = `https://api.tikmate.app/api/lookup?url=${encodeURIComponent(url)}`;
                 
-                const response = await fetch(proxyUrl, {
+                const response = await fetch(url.includes('tiktok') ? apiURL : 'https://api.cobalt.tools/api/json', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'Mozilla/5.0'
                     },
                     body: JSON.stringify({ url: url })
                 });
+
+                if (!response.ok) {
+                    throw new Error('El servicio de descarga no respondió correctamente.');
+                }
 
                 const data = await response.json();
 
                 if (data.status === 'redirect' || data.status === 'stream' || data.url) {
                     statusMsg.textContent = 'Select quality to download:';
-                    
                     const formats = data.picker ? data.picker : [{ url: data.url, label: 'HD Video' }];
 
                     formats.forEach((item, index) => {
@@ -275,20 +274,18 @@
                         optionDiv.appendChild(downloadLink);
                         linksContainer.appendChild(optionDiv);
                     });
-
                 } else {
-                    throw new Error(data.text || 'Could not extract media from this tweet.');
+                    throw new Error(data.text || 'No se pudo extraer el video de este tuit.');
                 }
 
             } catch (err) {
                 statusMsg.style.display = 'none';
-                errorMsg.textContent = 'Error: ' + (err.message || 'Failed to process link.');
+                errorMsg.textContent = 'Error: No se pudo conectar con la API de extracción o el enlace no es válido.';
                 errorMsg.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;
             }
         }
     </script>
-
 </body>
 </html>
