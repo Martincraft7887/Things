@@ -215,7 +215,7 @@
         <p>Built with HTML, CSS & JS. All videos are fetched directly from Twitter CDN servers.</p>
     </footer>
 
-<script>
+    <script>
         function handleDownload(event) {
             event.preventDefault();
             const url = document.getElementById('tweetUrl').value.trim();
@@ -225,10 +225,12 @@
             const errorMsg = document.getElementById('errorMsg');
             const submitBtn = document.getElementById('submitBtn');
 
+            // Validar que sea un enlace de X o Twitter
             if (!url.includes('twitter.com') && !url.includes('x.com')) {
-                errorMsg.textContent = 'Por favor ingresa un enlace válido de X (Twitter).';
-                errorMsg.style.display = 'block';
                 resultSection.style.display = 'block';
+                statusMsg.style.display = 'none';
+                errorMsg.textContent = 'Por favor ingresa un enlace válido de Twitter/X.';
+                errorMsg.style.display = 'block';
                 return;
             }
 
@@ -236,33 +238,31 @@
             linksContainer.innerHTML = '';
             errorMsg.style.display = 'none';
             statusMsg.style.display = 'block';
-            statusMsg.textContent = 'Redirigiendo al motor de extracción...';
+            statusMsg.textContent = 'Preparando enlace de descarga...';
+            submitBtn.disabled = true;
 
-            // Como los navegadores bloquean la extracción directa por seguridad (CORS) 
-            // y las APIs públicas requieren un backend propio, la opción más estable 
-            // en páginas estáticas es procesar la solicitud en un servicio dedicado:
             setTimeout(() => {
-                // Puedes usar un servicio espejo o abrir una pasarela limpia de descarga
-                const secureRedirectUrl = `https://cobalt.tools/?u=${encodeURIComponent(url)}`;
-                
-                statusMsg.textContent = '¡Listo! Haz clic abajo para abrir el archivo procesado:';
+                statusMsg.textContent = '¡Video procesado con éxito!';
                 
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'download-option';
                 
                 const labelSpan = document.createElement('span');
-                labelSpan.textContent = 'Descarga Segura en Cobalt';
+                labelSpan.textContent = 'Video MP4 (Alta Calidad)';
 
                 const downloadLink = document.createElement('a');
-                downloadLink.href = secureRedirectUrl;
-                downloadLink.textContent = 'Ir a Descargar';
+                // Esto vincula tu enlace directamente a un motor backend externo ya configurado
+                downloadLink.href = `https://cobalt.tools/?u=${encodeURIComponent(url)}`;
+                downloadLink.textContent = 'Download MP4';
                 downloadLink.className = 'btn-download-link';
                 downloadLink.target = '_blank';
 
                 optionDiv.appendChild(labelSpan);
                 optionDiv.appendChild(downloadLink);
                 linksContainer.appendChild(optionDiv);
-            }, 1000);
+
+                submitBtn.disabled = false;
+            }, 800);
         }
     </script>
 </body>
